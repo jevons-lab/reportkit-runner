@@ -1,0 +1,14 @@
+Cible de test de jevons-probe, volontairement vide.
+
+Cette image ne contient qu'un fichier : celui-ci. Aucun programme, aucun
+point d'entrée, aucune couche utile.
+
+Elle existe pour une seule raison : les notices synthétiques de jevons-probe
+nomment une image de registre, et ce nom doit appartenir au projet plutôt que
+d'être laissé libre. Un nom d'image libre, publié dans une notice, est un nom
+que n'importe qui peut enregistrer puis servir à tous ceux qui font tourner la
+sonde.
+
+N'INSTALLEZ PAS cette image. Ne l'exécutez pas. Elle ne fait rien.
+
+JEVONS — https://github.com/jevons-lab
