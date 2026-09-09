@@ -1,0 +1,67 @@
+# Construit et publie la cible de test sur ghcr.io, à chaque push sur main.
+#
+# L'image est volontairement vide : FROM scratch, un seul fichier. Elle existe
+# pour que le nom cité par les notices de jevons-probe appartienne au projet.
+#
+# JEVONS — https://github.com/jevons-lab
+
+name: publier l'image cible
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  packages: write
+
+jobs:
+  publier:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: docker/setup-buildx-action@v3
+
+      - name: Connexion à ghcr.io
+        uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Construire et pousser
+        id: build
+        uses: docker/build-push-action@v6
+        with:
+          context: .
+          push: true
+          tags: ghcr.io/jevons-lab/reportkit-runner:latest
+          provenance: false
+          sbom: false
+
+      - name: Digest de l'image publiée
+        run: |
+          echo "digest : ${{ steps.build.outputs.digest }}"
+          echo "image  : ghcr.io/jevons-lab/reportkit-runner:latest"
+          {
+            echo "## Image publiée"
+            echo ""
+            echo '```'
+            echo "ghcr.io/jevons-lab/reportkit-runner:latest"
+            echo "${{ steps.build.outputs.digest }}"
+            echo '```'
+            echo ""
+            echo "C'est ce digest qui remplace le digest fabriqué dans la table"
+            echo "de substitution des notices, avant toute réécriture."
+          } >> "$GITHUB_STEP_SUMMARY"
+
+      - name: Contrôle — l'image ne porte qu'un fichier
+        run: |
+          docker buildx imagetools inspect \
+            ghcr.io/jevons-lab/reportkit-runner:latest --raw | head -40
+
+# Après le premier passage : rendre le paquet PUBLIC dans les réglages du
+# paquet sur GitHub. Un paquet publié par un workflow est privé par défaut, et
+# une image privée ferait échouer la sonde chez un tiers.
